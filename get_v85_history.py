@@ -7,7 +7,7 @@ Väljer automatiskt den V85-omgång som kommer först från och med dagens datum
 
 Exempel:
   python3 get_v85_history_csv.py --avd 1
-  python3 get_v85_history_csv.py --avd 3 --out ~/Downloads/v85_avd3_historik.csv
+  python3 get_v85_history_csv.py --avd 3 --out ./csv/v86_history_20260226_143000.csv
 """
 
 from __future__ import annotations
@@ -170,7 +170,7 @@ def main() -> None:
         "--out",
         type=str,
         default=None,
-        help="Outputfil (default: ~/Downloads/v85_avd<nr>_historik.csv)",
+        help="Outputfil (default: ./csv/v86_history_<YYYYMMDD_HHMMSS>.csv)",
     )
     parser.add_argument(
         "--max-history",
@@ -199,7 +199,11 @@ def main() -> None:
     race = races[args.avd - 1]
     rows = collect_history_rows(race, max_history_per_horse=args.max_history)
 
-    out_path = Path(args.out).expanduser() if args.out else Path.home() / "Downloads" / f"v85_avd{args.avd}_historik.csv"
+    if args.out:
+        out_path = Path(args.out).expanduser()
+    else:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_path = Path(__file__).resolve().parent / "csv" / f"v86_history_{timestamp}.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     fieldnames = [
