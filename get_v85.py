@@ -6,7 +6,7 @@ Regel för datum: välj den V85-omgång som kommer först från och med dagens d
 
 Exempel:
   python3 get_v85_csv.py --avd 1
-  python3 get_v85_csv.py --avd 3 --out ./csv/v86_20260226_143000.csv
+  python3 get_v85_csv.py --avd 3 --out ./csv/v86_20260226_3.csv
 """
 
 from __future__ import annotations
@@ -31,6 +31,19 @@ def fetch_json(url: str) -> dict:
 def parse_iso_dt(s: str) -> datetime:
     # API ger normalt "2026-02-21T16:10:00"
     return datetime.fromisoformat(s)
+
+
+def game_date_str(game: dict, race: dict) -> str:
+    # Använd i första hand vald avdelnings starttid för filnamn.
+    race_start = race.get("startTime")
+    if race_start:
+        return parse_iso_dt(race_start).strftime("%Y%m%d")
+
+    game_start = game.get("startTime")
+    if game_start:
+        return parse_iso_dt(game_start).strftime("%Y%m%d")
+
+    return date.today().strftime("%Y%m%d")
 
 
 def choose_game_from_today(upcoming: list[dict]) -> dict:
@@ -74,6 +87,7 @@ def extract_rows(race: dict) -> list[dict[str, str]]:
 
         rows.append(
             {
+                "startnummer": str(s.get("number", "")),
                 "hästnamn": horse.get("name", ""),
                 "kusk": f"{driver.get('firstName', '')} {driver.get('lastName', '')}".strip(),
                 "tränare": f"{trainer.get('firstName', '')} {trainer.get('lastName', '')}".strip(),
@@ -92,7 +106,7 @@ def main() -> None:
         "--out",
         type=str,
         default=None,
-        help="Sökväg till CSV (default: ./csv/v86_<YYYYMMDD_HHMMSS>.csv)",
+        help="Sökväg till CSV (default: ./csv/v86_<YYYYMMDD>_<avd>.csv)",
     )
     args = parser.parse_args()
 
@@ -118,11 +132,11 @@ def main() -> None:
     if args.out:
         out_path = Path(args.out).expanduser()
     else:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_path = Path(__file__).resolve().parent / "csv" / f"v86_{timestamp}.csv"
+        game_date = game_date_str(game, race)
+        out_path = Path(__file__).resolve().parent / "csv" / f"v86_{game_date}_{args.avd}.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fieldnames = ["hästnamn", "kusk", "tränare", "v85%", "v-odds", "vagn"]
+    fieldnames = ["startnummer", "hästnamn", "kusk", "tränare", "v85%", "v-odds", "vagn"]
     with out_path.open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()

@@ -7,7 +7,7 @@ Väljer automatiskt den V85-omgång som kommer först från och med dagens datum
 
 Exempel:
   python3 get_v85_history_csv.py --avd 1
-  python3 get_v85_history_csv.py --avd 3 --out ./csv/v86_history_20260226_143000.csv
+  python3 get_v85_history_csv.py --avd 3 --out ./csv/v86_history_20260226_3.csv
 """
 
 from __future__ import annotations
@@ -50,6 +50,18 @@ def choose_game_from_today(upcoming: list[dict]) -> dict:
 
     candidates.sort(key=lambda x: x[0])
     return candidates[0][1]
+
+
+def game_date_str(game: dict, race: dict) -> str:
+    race_start = race.get("startTime")
+    if race_start:
+        return datetime.fromisoformat(race_start).strftime("%Y%m%d")
+
+    game_start = game.get("startTime")
+    if game_start:
+        return datetime.fromisoformat(game_start).strftime("%Y%m%d")
+
+    return date.today().strftime("%Y%m%d")
 
 
 def fmt_km_time(km: dict | None) -> str:
@@ -170,7 +182,7 @@ def main() -> None:
         "--out",
         type=str,
         default=None,
-        help="Outputfil (default: ./csv/v86_history_<YYYYMMDD_HHMMSS>.csv)",
+        help="Outputfil (default: ./csv/v86_history_<YYYYMMDD>_<avd>.csv)",
     )
     parser.add_argument(
         "--max-history",
@@ -202,8 +214,8 @@ def main() -> None:
     if args.out:
         out_path = Path(args.out).expanduser()
     else:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_path = Path(__file__).resolve().parent / "csv" / f"v86_history_{timestamp}.csv"
+        game_date = game_date_str(game, race)
+        out_path = Path(__file__).resolve().parent / "csv" / f"v86_history_{game_date}_{args.avd}.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     fieldnames = [
