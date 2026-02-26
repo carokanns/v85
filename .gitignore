@@ -25,9 +25,6 @@ venv/
 Thumbs.db
 
 # App data
-Databas/*
+Databas/v85.sqlite
 databas/
 csv/
-!Databas/*.py
-!Databas/*.sql
-!Databas/*.sh
