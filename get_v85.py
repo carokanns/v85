@@ -6,7 +6,7 @@ Regel för datum: välj den V85-omgång som kommer först från och med dagens d
 
 Exempel:
   python3 get_v85_csv.py --avd 1
-  python3 get_v85_csv.py --avd 3 --out ./csv/v86_20260226_3.csv
+  python3 get_v85_csv.py --avd 3 --out ./csv/v85_20260226_3.csv
 """
 
 from __future__ import annotations
@@ -106,7 +106,7 @@ def main() -> None:
         "--out",
         type=str,
         default=None,
-        help="Sökväg till CSV (default: ./csv/v86_<YYYYMMDD>_<avd>.csv)",
+        help="Sökväg till CSV (default: ./csv/v85_<YYYYMMDD>_<avd>.csv)",
     )
     args = parser.parse_args()
 
@@ -133,7 +133,7 @@ def main() -> None:
         out_path = Path(args.out).expanduser()
     else:
         game_date = game_date_str(game, race)
-        out_path = Path(__file__).resolve().parent / "csv" / f"v86_{game_date}_{args.avd}.csv"
+        out_path = Path(__file__).resolve().parent / "csv" / f"v85_{game_date}_{args.avd}.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     fieldnames = ["startnummer", "hästnamn", "kusk", "tränare", "v85%", "v-odds", "vagn"]
